@@ -5,7 +5,7 @@ import seaborn as sns
 from scipy import stats
 
 # Load the cleaned energy dataset (assuming it comes from Question 2: Data Cleaning)
-energy_df = pd.read_csv("datasets/energy_dataset.csv")
+energy_df = pd.read_csv("datasets/energy_dataset_cleaned.csv")
 
 print("=" * 60)
 print("QUESTION 3: HANDLING OUTLIERS")
