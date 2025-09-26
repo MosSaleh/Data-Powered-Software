@@ -1,6 +1,7 @@
 # Handling missing values for the "energy_dataset.csv" dataset
 import pandas as pd
 import numpy as np
+import os as os
 
 """
 Justification for missing value handling approach:
@@ -24,24 +25,24 @@ Will move to a KNN imputer for missing.
 """
 
 
-
 energy_df = pd.read_csv("datasets/energy_dataset.csv")
+
 
 def missing_handler(df):
     df_cleaned = df.copy()
     columns_to_drop = []
     fill_values = {}
-    
+
     # First pass: identify what to do with each column
     for col in df_cleaned.columns:
         missing_count = df_cleaned[col].isnull().sum()
         missing_pct = (missing_count / len(df_cleaned)) * 100
-        
+
         if missing_count == 0:
             continue
-            
+
         print(f"\nHandling {col}: {missing_count} missing ({missing_pct:.1f}%)")
-        
+
         if missing_pct > 50:
             print(f"  -> Dropping column (too much missing data)")
             columns_to_drop.append(col)
@@ -67,7 +68,7 @@ def missing_handler(df):
     # Apply changes
     df_cleaned = df_cleaned.drop(columns=columns_to_drop)
     df_cleaned = df_cleaned.fillna(value=fill_values)
-    
+
     return df_cleaned
 
 def daily_window_missing_handler(df, days_window=7):
@@ -191,3 +192,11 @@ comparison = pd.DataFrame({
 })
 print("\nDetailed Comparison:")
 print(comparison[comparison["Original_Missing"] > 0])
+
+# Save the cleaned dataset
+output_dir = "datasets"
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+output_file = os.path.join(output_dir, "energy_dataset_cleaned.csv")
+energy_df_cleaned.to_csv(output_file, index=False)
