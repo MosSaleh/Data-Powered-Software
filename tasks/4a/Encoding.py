@@ -38,7 +38,7 @@ for col in label_encode_columns:
     label_encoders[col] = le
 
 # Save the processed dataframe to a new CSV file
-df_processed.to_csv('./datasets/test.csv', index=False)
+df_processed.to_csv('./datasets/weather_numeric', index=False)
 
 print("Processing complete!")
 print(f"Original shape: {df.shape}")
