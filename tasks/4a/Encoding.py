@@ -37,8 +37,13 @@ for col in label_encode_columns:
     # Store the encoder for potential future use
     label_encoders[col] = le
 
+# Convert all boolean columns to int (0/1)
+for col in df_processed.columns:
+    if df_processed[col].dtype == bool:
+        df_processed[col] = df_processed[col].astype(int)
+
 # Save the processed dataframe to a new CSV file
-df_processed.to_csv('./datasets/weather_numeric', index=False)
+df_processed.to_csv('./datasets/weather_numeric.csv', index=False)
 
 print("Processing complete!")
 print(f"Original shape: {df.shape}")
