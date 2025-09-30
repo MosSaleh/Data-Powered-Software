@@ -36,6 +36,9 @@ for col in categorical_cols:
     print(f"\nUnique values in {col}:")
     print(energy_df[col].value_counts())
 
+
+print("\nOutliers:")
+print("\n")
 # Outlier detection (example for numerical columns)
 numerical_cols = energy_df.select_dtypes(include=[np.number]).columns
 for col in numerical_cols:
@@ -43,7 +46,8 @@ for col in numerical_cols:
     Q3 = energy_df[col].quantile(0.75)
     IQR = Q3 - Q1
     outliers = energy_df[(energy_df[col] < Q1 - 1.5*IQR) | (energy_df[col] > Q3 + 1.5*IQR)]
-    print(f"Outliers in {col}: {len(outliers)}")
+    if len(outliers) > 0:
+        print(f"Outliers in {col}: {len(outliers)}")
 
 summary_df = pd.DataFrame({
     'Column': energy_df.columns,

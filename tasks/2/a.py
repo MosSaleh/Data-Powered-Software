@@ -27,7 +27,7 @@ Will move to a KNN imputer for missing.
 
 energy_df = pd.read_csv("datasets/energy_dataset.csv")
 
-
+# OLD HANDLER!
 def missing_handler(df):
     df_cleaned = df.copy()
     columns_to_drop = []
@@ -125,7 +125,7 @@ def daily_window_missing_handler(df, days_window=7):
 
                 if len(same_time_values) > 0:
                     # Use mean of ALL available same-time values from different days
-                    fill_value = same_time_values.mean()
+                    fill_value = same_time_values.mean().round(3)
                     df_cleaned7.loc[idx, col] = fill_value
                     filled_count += 1
                     print(f"    Used {len(same_time_values)} values from different days")
@@ -146,17 +146,42 @@ def daily_window_missing_handler(df, days_window=7):
     return df_cleaned7
 
 
-
-
-
+def remove_zero_columns(df):
+    """
+    Remove columns that contain only zeros (after excluding NaN values)
+    """
+    df_cleaned = df.copy()
+    zero_columns = []
+    
+    for col in df_cleaned.columns:
+        # Skip non-numeric columns
+        if df_cleaned[col].dtype == 'object' or col == 'time':
+            continue
+            
+        # Check if all non-null values are zero
+        non_null_values = df_cleaned[col].dropna()
+        if len(non_null_values) > 0 and (non_null_values == 0).all():
+            zero_columns.append(col)
+            print(f"Found all-zero column: {col}")
+    
+    if zero_columns:
+        df_cleaned = df_cleaned.drop(columns=zero_columns)
+        print(f"Removed {len(zero_columns)} columns with all zero values: \n{zero_columns}")
+    else:
+        print("No columns with all zero values found.")
+    
+    return df_cleaned
 
 
 
 # Apply missing handling
-energy_df_cleaned = missing_handler(energy_df)
-energy_df_cleaned.to_csv("datasets/new_cleaned_dataset.csv", index=False)
+
+#GAMMEL HANDLER
+#energy_df_cleaned = missing_handler(energy_df)
+#energy_df_cleaned.to_csv("datasets/new_cleaned_dataset.csv", index=False)
 
 # Compare before and after
+"""
 print("BEFORE handling missing values:")
 print(energy_df.isnull().sum().sum(), "total missing values")
 print("\n")
@@ -171,18 +196,24 @@ comparison = pd.DataFrame({
 })
 print("\nDetailed Comparison:")
 print(comparison[comparison["Original_Missing"] > 0])
-
+"""
 
 # Apply missing handling
 energy_df_cleaned7 = daily_window_missing_handler(energy_df)
-energy_df_cleaned7.to_csv("datasets/new_cleaned_dataset7.csv", index=False)
+# Remove all-zero columns
+
+print("\nRemoving all-zero columns if any...")
+energy_df_cleaned7 = remove_zero_columns(energy_df_cleaned7)
+energy_df_cleaned7.to_csv("datasets/energy_dataset_cleaned.csv", index=False)
 
 # Compare before and after
 print("BEFORE handling missing values:")
 print(energy_df.isnull().sum().sum(), "total missing values")
+print(f"Original shape: {energy_df.shape}")
 print("\n")
-print("\nAFTER handling missing values:")
+print("\nAFTER handling missing values AND removing zero columns:")
 print(energy_df_cleaned7.isnull().sum().sum(), "total missing values")
+print(f"Final shape: {energy_df_cleaned7.shape}")
 
 # Detailed comparison
 comparison = pd.DataFrame({
@@ -199,4 +230,3 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 output_file = os.path.join(output_dir, "energy_dataset_cleaned.csv")
-energy_df_cleaned.to_csv(output_file, index=False)
