@@ -1,6 +1,3 @@
-# normality_check.py
-# pip install pandas numpy scipy matplotlib statsmodels
-
 from pathlib import Path
 import re
 import numpy as np
@@ -10,8 +7,8 @@ from scipy import stats
 import statsmodels.api as sm
 
 # ========= CONFIG =========
-CSV_PATH = "datasets/new_cleaned_dataset7.csv"     # endre hvis filen ligger et annet sted
-PLOTS_DIR = "tasks/4/normality_plots"             # mappe for figurer (opprettes automatisk)
+CSV_PATH = "datasets/new_cleaned_dataset7.csv"
+PLOTS_DIR = "tasks/4b/normality_plots"
 SAVE_PLOTS = True                         # sett False hvis du ikke vil lagre figurer
 SHOW_PLOTS = False                        # sett True hvis du vil åpne vinduer (kan være tregt)
 MIN_POINTS = 20                           # hopp plott for svært korte serier
