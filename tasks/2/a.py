@@ -26,6 +26,7 @@ Will move to a KNN imputer for missing.
 
 
 energy_df = pd.read_csv("datasets/energy_dataset.csv")
+weather_df = pd.read_csv("datasets/weather_features.csv")
 
 # OLD HANDLER!
 def missing_handler(df):
@@ -71,6 +72,7 @@ def missing_handler(df):
 
     return df_cleaned
 
+# NEW HANDLER - daily window mean
 def daily_window_missing_handler(df, days_window=7):
     """
     Uses same time from EVERY day within a window (past and future) to calculate mean
@@ -91,7 +93,7 @@ def daily_window_missing_handler(df, days_window=7):
         if missing_count == 0:
             continue
             
-        print(f"\nHandling {col}: {missing_count} missing ({missing_pct:.1f}%)")
+        print(f"\nHandling {col}: {missing_count} missing ({missing_pct:.2f}%)")
         
         if missing_pct > 50:
             print(f"  -> Dropping column (too much missing data)")
@@ -172,6 +174,21 @@ def remove_zero_columns(df):
     
     return df_cleaned
 
+def round_numeric_columns(df, decimals=3):
+    """
+    Round all numeric columns to specified decimal places
+    """
+    df_rounded = df.copy()
+    
+    # Get numeric columns
+    numeric_cols = df_rounded.select_dtypes(include=[np.number]).columns
+    
+    # Round only numeric columns
+    df_rounded[numeric_cols] = df_rounded[numeric_cols].round(decimals)
+    
+    print(f"Rounded {len(numeric_cols)} numeric columns to {decimals} decimal places")
+    return df_rounded
+
 
 
 # Apply missing handling
@@ -200,14 +217,27 @@ print(comparison[comparison["Original_Missing"] > 0])
 
 # Apply missing handling
 energy_df_cleaned7 = daily_window_missing_handler(energy_df)
-# Remove all-zero columns
+weather_df_cleaned = missing_handler(weather_df)
 
+# Remove all-zero columns
 print("\nRemoving all-zero columns if any...")
 energy_df_cleaned7 = remove_zero_columns(energy_df_cleaned7)
-energy_df_cleaned7.to_csv("datasets/energy_dataset_cleaned.csv", index=False)
+weather_df_cleaned = remove_zero_columns(weather_df_cleaned)
 
-# Compare before and after
-print("BEFORE handling missing values:")
+
+# Round all numeric columns to 3 decimal places
+print("\nRounding numeric columns to 3 decimal places...")
+energy_df_cleaned7 = round_numeric_columns(energy_df_cleaned7, 3)
+weather_df_cleaned = round_numeric_columns(weather_df_cleaned, 3)
+
+# Save the cleaned datasets
+energy_df_cleaned7.to_csv("datasets/energy_dataset_cleaned.csv", index=False)
+weather_df_cleaned.to_csv("datasets/weather_features_cleaned.csv", index=False)
+
+
+
+# Compare before and after for energy_df
+print("BEFORE handling missing values energy_df:")
 print(energy_df.isnull().sum().sum(), "total missing values")
 print(f"Original shape: {energy_df.shape}")
 print("\n")
@@ -215,7 +245,7 @@ print("\nAFTER handling missing values AND removing zero columns:")
 print(energy_df_cleaned7.isnull().sum().sum(), "total missing values")
 print(f"Final shape: {energy_df_cleaned7.shape}")
 
-# Detailed comparison
+# Detailed comparison Energy_df
 comparison = pd.DataFrame({
     "Original_Missing": energy_df.isnull().sum(),
     "Cleaned_Missing": [energy_df_cleaned7[col].isnull().sum() if col in energy_df_cleaned7.columns else 'Column Removed' for col in energy_df.columns],
@@ -224,9 +254,31 @@ comparison = pd.DataFrame({
 print("\nDetailed Comparison:")
 print(comparison[comparison["Original_Missing"] > 0])
 
+
+
+# Compare before and after WEATHER_df
+print("\nBEFORE handling missing values weather_df:")
+print(weather_df.isnull().sum().sum(), "total missing values")
+print(f"Original shape: {weather_df.shape}")
+print("\n")
+print("\nAFTER handling missing values AND removing zero columns:")
+print(weather_df_cleaned.isnull().sum().sum(), "total missing values")
+print(f"Final shape: {weather_df_cleaned.shape}")
+
+# Detailed comparison Weather_df
+comparison1 = pd.DataFrame({
+    "Original_Missing": weather_df.isnull().sum(),
+    "Cleaned_Missing": [weather_df_cleaned[col].isnull().sum() if col in weather_df_cleaned.columns else 'Column Removed' for col in weather_df.columns],
+    "Filled_Mean": [weather_df_cleaned[col].mean() if col in weather_df_cleaned.columns and weather_df_cleaned[col].dtype != 'object' else 'N/A' for col in weather_df.columns]
+})
+print("\nDetailed Comparison:")
+print(comparison1[comparison1["Original_Missing"] > 0])
+
+
 # Save the cleaned dataset
 output_dir = "datasets"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 output_file = os.path.join(output_dir, "energy_dataset_cleaned.csv")
+output_file = os.path.join(output_dir, "weather_features_cleaned.csv")
